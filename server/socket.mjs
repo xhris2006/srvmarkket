@@ -1,37 +1,49 @@
-import { createServer } from 'node:http'
+// ─── SOCKET.IO REAL-TIME SERVER (Pure JS — Railway compatible) ────────────────
+// Run via: node server/socket.mjs
+// No TypeScript, no @/ aliases, no build step needed.
+
+import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { jwtVerify } from 'jose'
 
+// ─── JWT VERIFICATION ─────────────────────────────────────────────────────────
 const ACCESS_SECRET = new TextEncoder().encode(
   process.env.JWT_ACCESS_SECRET || 'fallback-secret-change-in-production'
 )
-
-function getAllowedOrigins() {
-  const configuredOrigins = process.env.ALLOWED_ORIGINS?.split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-
-  if (configuredOrigins && configuredOrigins.length > 0) {
-    return configuredOrigins
-  }
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
-  if (appUrl) {
-    return [appUrl]
-  }
-
-  return true
-}
 
 async function verifyAccessToken(token) {
   const { payload } = await jwtVerify(token, ACCESS_SECRET)
   return payload
 }
 
-const httpServer = createServer()
-const allowedOrigins = getAllowedOrigins()
+// ─── CORS ORIGINS ─────────────────────────────────────────────────────────────
+function getAllowedOrigins() {
+  const configured = process.env.ALLOWED_ORIGINS?.split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
 
-console.log('[Socket] Allowed origins:', allowedOrigins === true ? 'all' : allowedOrigins.join(', '))
+  if (configured && configured.length > 0) return configured
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+  if (appUrl) return [appUrl]
+
+  return true // allow all (dev fallback)
+}
+
+const allowedOrigins = getAllowedOrigins()
+console.log('[Socket] Allowed origins:', allowedOrigins === true ? 'ALL' : allowedOrigins.join(', '))
+
+// ─── HTTP + SOCKET.IO SERVER ──────────────────────────────────────────────────
+const httpServer = createServer((req, res) => {
+  // Simple health check endpoint
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ status: 'ok', uptime: process.uptime() }))
+    return
+  }
+  res.writeHead(404)
+  res.end()
+})
 
 const io = new Server(httpServer, {
   cors: {
@@ -40,12 +52,17 @@ const io = new Server(httpServer, {
     credentials: true,
   },
   pingTimeout: 60000,
+  transports: ['websocket', 'polling'],
 })
 
+// Track online users: userId -> socketId
 const onlineUsers = new Map()
 
+// ─── AUTH MIDDLEWARE ──────────────────────────────────────────────────────────
 io.use(async (socket, next) => {
-  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1]
+  const token =
+    socket.handshake.auth?.token ||
+    socket.handshake.headers?.authorization?.split(' ')[1]
 
   if (!token) {
     return next(new Error('Authentication required'))
@@ -61,15 +78,15 @@ io.use(async (socket, next) => {
   }
 })
 
+// ─── CONNECTION HANDLER ───────────────────────────────────────────────────────
 io.on('connection', (socket) => {
   const userId = socket.userId
-  if (!userId) return
 
   onlineUsers.set(userId, socket.id)
   socket.broadcast.emit('user:online', { userId })
-
   console.log(`[Socket] User ${userId} connected (${socket.id})`)
 
+  // ─── CONVERSATIONS ──────────────────────────────────────────────────────────
   socket.on('conversation:join', (conversationId) => {
     socket.join(`conversation:${conversationId}`)
   })
@@ -78,6 +95,7 @@ io.on('connection', (socket) => {
     socket.leave(`conversation:${conversationId}`)
   })
 
+  // ─── MESSAGES ──────────────────────────────────────────────────────────────
   socket.on('message:send', async (data) => {
     try {
       const messagePayload = {
@@ -85,7 +103,6 @@ io.on('connection', (socket) => {
         senderId: userId,
         createdAt: new Date().toISOString(),
       }
-
       io.to(`conversation:${data.conversationId}`).emit('message:new', messagePayload)
     } catch {
       socket.emit('message:error', { tempId: data.tempId, error: 'Failed to send message' })
@@ -96,6 +113,7 @@ io.on('connection', (socket) => {
     io.to(`conversation:${data.conversationId}`).emit('message:deleted', data)
   })
 
+  // ─── TYPING ────────────────────────────────────────────────────────────────
   socket.on('typing:start', (conversationId) => {
     socket.to(`conversation:${conversationId}`).emit('typing:start', { userId, conversationId })
   })
@@ -104,13 +122,13 @@ io.on('connection', (socket) => {
     socket.to(`conversation:${conversationId}`).emit('typing:stop', { userId, conversationId })
   })
 
+  // ─── CALL SIGNALING ─────────────────────────────────────────────────────────
   socket.on('call:initiate', (data) => {
     const targetSocketId = onlineUsers.get(data.targetUserId)
     if (!targetSocketId) {
       socket.emit('call:failed', { reason: 'User is offline' })
       return
     }
-
     io.to(targetSocketId).emit('call:incoming', {
       callerId: userId,
       callType: data.callType,
@@ -142,6 +160,7 @@ io.on('connection', (socket) => {
     }
   })
 
+  // ─── WEBRTC SIGNALING ───────────────────────────────────────────────────────
   socket.on('webrtc:offer', (data) => {
     const targetSocketId = onlineUsers.get(data.targetUserId)
     if (targetSocketId) {
@@ -163,6 +182,7 @@ io.on('connection', (socket) => {
     }
   })
 
+  // ─── DISCONNECT ─────────────────────────────────────────────────────────────
   socket.on('disconnect', () => {
     onlineUsers.delete(userId)
     socket.broadcast.emit('user:offline', { userId })
@@ -170,8 +190,8 @@ io.on('connection', (socket) => {
   })
 })
 
-const PORT = process.env.PORT || process.env.SOCKET_PORT || 3001
+// ─── START ────────────────────────────────────────────────────────────────────
+const PORT = process.env.PORT || 3001
 httpServer.listen(PORT, () => {
-  console.log(`[Socket] Real-time server running on port ${PORT}`)
+  console.log(`[Socket] Server running on port ${PORT}`)
 })
-
