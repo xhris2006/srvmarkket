@@ -49,7 +49,7 @@ export function useSocket() {
       reconnectionAttempts: 3,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
     })
 
     // ─── CONNECTION EVENTS ────────────────────────────────────────────────────
