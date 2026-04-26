@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "socket": "node ./node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.server.json server/socket.ts",
+    "socket": "node server/socket.mjs",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
