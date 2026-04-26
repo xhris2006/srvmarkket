@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "buildCommand": "npx prisma generate && npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "DATABASE_URL": "@database-url",
+    "JWT_ACCESS_SECRET": "@jwt-access-secret",
+    "JWT_REFRESH_SECRET": "@jwt-refresh-secret",
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe-webhook-secret",
+    "AGORA_APP_ID": "@agora-app-id",
+    "AGORA_APP_CERTIFICATE": "@agora-app-certificate",
+    "PAYPAL_CLIENT_ID": "@paypal-client-id",
+    "PAYPAL_CLIENT_SECRET": "@paypal-client-secret"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/payments/webhook",
+      "destination": "/api/payments/webhook"
+    }
+  ]
+}

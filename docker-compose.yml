@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  # ─── POSTGRES ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: servmarket-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: servmarket
+      POSTGRES_USER: servmarket
+      POSTGRES_PASSWORD: servmarket_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U servmarket']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── NEXT.JS APP ───────────────────────────────────────────────────────────
+  app:
+    build: .
+    container_name: servmarket-app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://servmarket:servmarket_secret@postgres:5432/servmarket
+      JWT_ACCESS_SECRET: change-this-in-production-min-32-chars
+      JWT_REFRESH_SECRET: change-this-refresh-in-production-32
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_SOCKET_URL: http://socket:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ─── SOCKET.IO SERVER ──────────────────────────────────────────────────────
+  socket:
+    build:
+      context: .
+      dockerfile: Dockerfile.socket
+    container_name: servmarket-socket
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      JWT_ACCESS_SECRET: change-this-in-production-min-32-chars
+      SOCKET_PORT: 3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

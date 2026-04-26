@@ -1,0 +1,20 @@
+# ─── SOCKET.IO SERVER DOCKERFILE ──────────────────────────────────────────────
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install only production deps
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+COPY server/ ./server/
+COPY tsconfig.json ./
+
+# Install tsx for running TypeScript directly
+RUN npm install -g tsx
+
+EXPOSE 3001
+
+ENV NODE_ENV=production
+
+CMD ["tsx", "server/socket.ts"]

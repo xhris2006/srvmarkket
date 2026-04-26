@@ -1,0 +1,301 @@
+// This is your Prisma schema file for ServMarket global marketplace
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  avatar        String?
+  phone         String?
+  role          Role     @default(CLIENT)
+  isVerified    Boolean  @default(false)
+  isBanned      Boolean  @default(false)
+  banReason     String?
+  refreshToken  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Location
+  latitude      Float?
+  longitude     Float?
+  city          String?
+  country       String?
+
+  // Relations
+  providerProfile   ProviderProfile?
+  bookingsAsClient  Booking[]         @relation("ClientBookings")
+  reviewsGiven      Review[]          @relation("ReviewsGiven")
+  sentMessages      Message[]         @relation("SentMessages")
+  conversations     ConversationParticipant[]
+  transactions      Transaction[]
+  reports           Report[]          @relation("ReportedBy")
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+// ─── PROVIDER PROFILE ─────────────────────────────────────────────────────────
+
+model ProviderProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?
+  tagline         String?
+  isAvailable     Boolean  @default(true)
+  isVerifiedBadge Boolean  @default(false)
+  rating          Float    @default(0)
+  totalReviews    Int      @default(0)
+  completedJobs   Int      @default(0)
+  stripeAccountId String?  // Stripe Connect account
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  services  Service[]
+  bookings  Booking[] @relation("ProviderBookings")
+  reviews   Review[]
+
+  @@map("provider_profiles")
+}
+
+// ─── SERVICES ─────────────────────────────────────────────────────────────────
+
+model Service {
+  id              String          @id @default(cuid())
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  category        ServiceCategory
+  price           Float
+  priceType       PriceType       @default(FIXED)
+  duration        Int?            // in minutes
+  images          String[]        @default([])
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  bookings        Booking[]
+
+  @@map("services")
+}
+
+enum ServiceCategory {
+  CLEANING
+  REPAIR
+  PLUMBING
+  ELECTRICAL
+  PAINTING
+  MOVING
+  GARDENING
+  COOKING
+  TUTORING
+  BEAUTY
+  FITNESS
+  PET_CARE
+  IT_SUPPORT
+  PHOTOGRAPHY
+  OTHER
+}
+
+enum PriceType {
+  FIXED
+  HOURLY
+  NEGOTIABLE
+}
+
+// ─── BOOKINGS ─────────────────────────────────────────────────────────────────
+
+model Booking {
+  id          String        @id @default(cuid())
+  clientId    String
+  client      User          @relation("ClientBookings", fields: [clientId], references: [id])
+  providerId  String
+  provider    ProviderProfile @relation("ProviderBookings", fields: [providerId], references: [id])
+  serviceId   String
+  service     Service       @relation(fields: [serviceId], references: [id])
+  status      BookingStatus @default(PENDING)
+  scheduledAt DateTime
+  address     String?
+  notes       String?
+  totalAmount Float
+  platformFee Float         @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  transaction Transaction?
+  review      Review?
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ─── REVIEWS ──────────────────────────────────────────────────────────────────
+
+model Review {
+  id          String          @id @default(cuid())
+  bookingId   String          @unique
+  booking     Booking         @relation(fields: [bookingId], references: [id])
+  authorId    String
+  author      User            @relation("ReviewsGiven", fields: [authorId], references: [id])
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  rating      Int             // 1-5
+  comment     String?
+  isHidden    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+
+  @@map("reviews")
+}
+
+// ─── CONVERSATIONS & MESSAGES ─────────────────────────────────────────────────
+
+model Conversation {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastMessage  String?
+  lastMessageAt DateTime?
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User        @relation("SentMessages", fields: [senderId], references: [id])
+  content        String?
+  type           MessageType @default(TEXT)
+  audioUrl       String?     // for voice messages
+  isDeleted      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  reports        Report[]
+
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+  IMAGE
+  SYSTEM
+}
+
+// ─── PAYMENTS ─────────────────────────────────────────────────────────────────
+
+model Transaction {
+  id                String            @id @default(cuid())
+  bookingId         String            @unique
+  booking           Booking           @relation(fields: [bookingId], references: [id])
+  userId            String
+  user              User              @relation(fields: [userId], references: [id])
+  amount            Float
+  currency          String            @default("usd")
+  platformFee       Float
+  providerAmount    Float
+  status            TransactionStatus @default(PENDING)
+  provider          PaymentProvider   @default(STRIPE)
+  stripePaymentIntentId String?
+  stripeTransferId  String?
+  paypalOrderId     String?
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@map("transactions")
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// ─── REPORTS ──────────────────────────────────────────────────────────────────
+
+model Report {
+  id          String       @id @default(cuid())
+  reportedById String
+  reportedBy   User        @relation("ReportedBy", fields: [reportedById], references: [id])
+  messageId   String?
+  message     Message?     @relation(fields: [messageId], references: [id])
+  reason      String
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+
+  @@map("reports")
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
