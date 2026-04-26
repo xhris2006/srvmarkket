@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: 'Find trusted service providers near you. Book, chat, and pay securely.',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ServMarket' },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 }
 
 export const viewport: Viewport = {

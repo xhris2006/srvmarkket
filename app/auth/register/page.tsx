@@ -90,6 +90,7 @@ function RegisterPageContent() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name</label>
             <input
+              autoComplete="name"
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -102,6 +103,7 @@ function RegisterPageContent() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
             <input
               required
+              autoComplete="email"
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -116,6 +118,7 @@ function RegisterPageContent() {
               <input
                 required
                 minLength={8}
+                autoComplete="new-password"
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}

@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { name, email, password, role } = parsed.data
+    const name = parsed.data.name.trim()
+    const email = parsed.data.email.trim().toLowerCase()
+    const { password, role } = parsed.data
 
     // Check if email already exists
     const existing = await prisma.user.findUnique({ where: { email } })
@@ -80,6 +82,25 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error('[Register]', error)
+
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase()
+
+      if (message.includes('environment variable not found')) {
+        return NextResponse.json(
+          { success: false, error: 'Server configuration error. Please contact support.' },
+          { status: 503 }
+        )
+      }
+
+      if (message.includes('can\'t reach database server') || message.includes('can not reach database server')) {
+        return NextResponse.json(
+          { success: false, error: 'Database unavailable. Please try again in a moment.' },
+          { status: 503 }
+        )
+      }
+    }
+
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
