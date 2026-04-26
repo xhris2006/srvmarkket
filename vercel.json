@@ -4,17 +4,6 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "env": {
-    "DATABASE_URL": "@database-url",
-    "JWT_ACCESS_SECRET": "@jwt-access-secret",
-    "JWT_REFRESH_SECRET": "@jwt-refresh-secret",
-    "STRIPE_SECRET_KEY": "@stripe-secret-key",
-    "STRIPE_WEBHOOK_SECRET": "@stripe-webhook-secret",
-    "AGORA_APP_ID": "@agora-app-id",
-    "AGORA_APP_CERTIFICATE": "@agora-app-certificate",
-    "PAYPAL_CLIENT_ID": "@paypal-client-id",
-    "PAYPAL_CLIENT_SECRET": "@paypal-client-secret"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
