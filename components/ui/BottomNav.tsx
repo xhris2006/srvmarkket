@@ -23,7 +23,12 @@ export function BottomNav() {
 
   // Don't show on admin, auth, or call pages
   if (!user) return null
-  if (pathname.startsWith('/admin') || pathname.startsWith('/auth') || pathname.includes('/call')) return null
+  if (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/chat/') ||
+    pathname.includes('/call')
+  ) return null
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t safe-bottom md:hidden">

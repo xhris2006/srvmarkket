@@ -116,11 +116,17 @@ export default function ChatPage() {
       setTypingUsers((prev) => prev.filter((id) => id !== userId))
     })
 
-    socketInstance.on('call:incoming', (data: { callerId: string; callType: 'voice' | 'video'; channelName: string }) => {
+    socketInstance.on('call:incoming', (data: {
+      callerId: string
+      callerName?: string
+      callerAvatar?: string | null
+      callType: 'voice' | 'video'
+      channelName: string
+    }) => {
       setIncomingCall({
         callerId: data.callerId,
-        callerName: otherParticipant?.user.name || 'Unknown',
-        callerAvatar: otherParticipant?.user.avatar ?? undefined,
+        callerName: data.callerName || otherParticipant?.user.name || 'Utilisateur',
+        callerAvatar: data.callerAvatar || otherParticipant?.user.avatar || undefined,
         callType: data.callType,
         channelName: data.channelName,
       })
@@ -298,7 +304,13 @@ export default function ChatPage() {
   const initiateCall = (callType: 'voice' | 'video') => {
     if (!otherParticipant) return
     const channelName = `call-${conversationId}-${Date.now()}`
-    socketInstance?.emit('call:initiate', { targetUserId: otherParticipant.userId, callType, channelName })
+    socketInstance?.emit('call:initiate', {
+      targetUserId: otherParticipant.userId,
+      callType,
+      channelName,
+      callerName: user?.name || 'Utilisateur',
+      callerAvatar: user?.avatar || null,
+    })
     router.push(`/chat/${conversationId}/call?channel=${channelName}&type=${callType}`)
   }
 

@@ -131,6 +131,8 @@ io.on('connection', (socket) => {
     }
     io.to(targetSocketId).emit('call:incoming', {
       callerId: userId,
+      callerName: data.callerName || 'Utilisateur',
+      callerAvatar: data.callerAvatar || null,
       callType: data.callType,
       channelName: data.channelName,
     })

@@ -102,16 +102,21 @@ export function useSocket() {
     // ─── INCOMING CALLS ───────────────────────────────────────────────────────
     socket.on('call:incoming', (data: {
       callerId: string
-      callerName: string
-      callerAvatar?: string
+      callerName?: string
+      callerAvatar?: string | null
       callType: 'voice' | 'video'
       channelName: string
     }) => {
-      setIncomingCall(data)
+      const callerName = data.callerName || 'Utilisateur'
+      setIncomingCall({
+        ...data,
+        callerName,
+        callerAvatar: data.callerAvatar || undefined,
+      })
       addNotification({
         id: `call-${Date.now()}`,
         title: `Incoming ${data.callType} call`,
-        body: `${data.callerName} is calling you`,
+        body: `${callerName} is calling you`,
         type: 'CALL',
       })
     })
@@ -174,6 +179,8 @@ export function useSocket() {
     targetUserId: string
     callType: 'voice' | 'video'
     channelName: string
+    callerName?: string
+    callerAvatar?: string | null
   }) => {
     socketRef.current?.emit('call:initiate', data)
   }, [])

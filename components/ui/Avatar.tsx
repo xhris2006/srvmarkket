@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 
 interface AvatarProps {
   src?: string | null
-  name: string
+  name?: string | null
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   online?: boolean
   className?: string
@@ -45,7 +45,9 @@ function getGradient(name: string): string {
 }
 
 export function Avatar({ src, name, size = 'md', online, className }: AvatarProps) {
-  const initials = name
+  const safeName = name?.trim() || 'Utilisateur'
+
+  const initials = safeName
     .split(' ')
     .slice(0, 2)
     .map((n) => n[0])
@@ -57,7 +59,7 @@ export function Avatar({ src, name, size = 'md', online, className }: AvatarProp
       {src ? (
         <img
           src={src}
-          alt={name}
+          alt={safeName}
           className={clsx(sizes[size], 'rounded-full object-cover')}
         />
       ) : (
@@ -65,7 +67,7 @@ export function Avatar({ src, name, size = 'md', online, className }: AvatarProp
           className={clsx(
             sizes[size],
             'rounded-full bg-gradient-to-br flex items-center justify-center text-white font-bold',
-            getGradient(name)
+            getGradient(safeName)
           )}
         >
           {initials}
