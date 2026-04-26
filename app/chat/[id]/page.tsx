@@ -360,7 +360,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} isOwn={message.senderId === user?.id} />
         ))}
@@ -437,7 +437,7 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
 
   if (message.isDeleted) {
     return (
-      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1`}>
+      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-0.5`}>
         <span className="text-xs text-gray-400 italic px-3 py-2">Message deleted</span>
       </div>
     )
@@ -457,9 +457,9 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
   }
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-0.5`}>
       <div
-        className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl ${
+        className={`max-w-[80%] px-3 py-1.5 rounded-2xl ${
           isOwn ? 'gradient-brand text-white rounded-br-sm' : 'bg-gray-100 text-gray-900 rounded-bl-sm'
         }`}
       >
@@ -475,7 +475,7 @@ function MessageBubble({ message, isOwn }: { message: Message; isOwn: boolean })
         ) : (
           <p className="text-sm leading-relaxed">{message.content}</p>
         )}
-        <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/60 text-right' : 'text-gray-400'}`}>
+        <p className={`text-[9px] mt-0.5 ${isOwn ? 'text-white/60 text-right' : 'text-gray-400'}`}>
           {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
