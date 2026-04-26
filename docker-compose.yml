@@ -48,6 +48,7 @@ services:
       dockerfile: Dockerfile.socket
     container_name: servmarket-socket
     restart: unless-stopped
+    command: ['node', 'server/socket.mjs']
     ports:
       - '3001:3001'
     environment:
