@@ -4,12 +4,15 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import { io, Socket } from 'socket.io-client'
 import { useAuthStore, useChatStore, useCallStore, useNotificationStore } from '@/lib/store'
+import { getSocketUrl } from '@/lib/socket'
 
 let globalSocket: Socket | null = null
 
 export function useSocket() {
+  const pathname = usePathname()
   const { user, accessToken } = useAuthStore()
   const { addMessage, setUserOnline, setUserOffline, setTyping } = useChatStore()
   const { setIncomingCall } = useCallStore()
@@ -18,14 +21,21 @@ export function useSocket() {
   const socketRef = useRef<Socket | null>(null)
 
   const connect = useCallback(() => {
+    const isPublicRoute =
+      pathname.startsWith('/auth/') ||
+      pathname === '/admin/login'
+
+    if (isPublicRoute) return
     if (!accessToken || !user) return
+    const socketUrl = getSocketUrl()
+    if (!socketUrl) return
     if (globalSocket?.connected) {
       socketRef.current = globalSocket
       setIsConnected(true)
       return
     }
 
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+    const socket = io(socketUrl, {
       auth: { token: accessToken },
       reconnection: true,
       reconnectionAttempts: 10,
@@ -101,7 +111,7 @@ export function useSocket() {
 
     globalSocket = socket
     socketRef.current = socket
-  }, [accessToken, user, addMessage, setUserOnline, setUserOffline, setTyping, setIncomingCall, addNotification])
+  }, [pathname, accessToken, user, addMessage, setUserOnline, setUserOffline, setTyping, setIncomingCall, addNotification])
 
   useEffect(() => {
     connect()

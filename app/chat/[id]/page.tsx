@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Send, Mic, MicOff, Phone, Video, MoreVertical, Loader2, X, Play, Pause } from 'lucide-react'
+import { getSocketUrl } from '@/lib/socket'
 import { useAuthStore, useChatStore, useCallStore } from '@/lib/store'
 import { io, Socket } from 'socket.io-client'
 
@@ -83,8 +84,10 @@ export default function ChatPage() {
   // ─── SOCKET CONNECTION ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!accessToken || !user) return
+    const socketUrl = getSocketUrl()
+    if (!socketUrl) return
 
-    socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+    socketInstance = io(socketUrl, {
       auth: { token: accessToken },
       reconnection: true,
       reconnectionAttempts: 5,

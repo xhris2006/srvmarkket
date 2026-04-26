@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Mic, MicOff, Video, VideoOff, Phone, PhoneOff, RotateCcw, Loader2 } from 'lucide-react'
+import { getSocketUrl } from '@/lib/socket'
 import { useAuthStore, useCallStore } from '@/lib/store'
 import { io, Socket } from 'socket.io-client'
 
@@ -94,8 +95,10 @@ export default function CallPage() {
   // ─── SOCKET SETUP & WEBRTC SIGNALING ────────────────────────────────────────
   useEffect(() => {
     if (!accessToken || !user) return
+    const socketUrl = getSocketUrl()
+    if (!socketUrl) return
 
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+    const socket = io(socketUrl, {
       auth: { token: accessToken },
     })
     socketRef.current = socket
