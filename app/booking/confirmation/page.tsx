@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle, Calendar, MapPin, ArrowRight, MessageCircle, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
@@ -19,7 +21,7 @@ interface BookingDetails {
   transaction?: { status: string }
 }
 
-export default function BookingConfirmationPage() {
+function BookingConfirmationPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { accessToken } = useAuthStore()
@@ -113,5 +115,13 @@ export default function BookingConfirmationPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function BookingConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-600 animate-spin" /></div>}>
+      <BookingConfirmationPageContent />
+    </Suspense>
   )
 }

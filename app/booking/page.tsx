@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Calendar, MapPin, FileText, Loader2, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
@@ -18,7 +20,7 @@ interface ServiceInfo {
   }
 }
 
-export default function BookingPage() {
+function BookingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, accessToken } = useAuthStore()
@@ -233,5 +235,13 @@ export default function BookingPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-600 animate-spin" /></div>}>
+      <BookingPageContent />
+    </Suspense>
   )
 }

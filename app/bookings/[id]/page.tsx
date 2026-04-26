@@ -139,6 +139,7 @@ export default function BookingDetailPage() {
   const isClient = user?.id === booking.client.id
   const isProvider = user?.id === booking.service.provider.userId
   const other = isClient ? booking.service.provider.user : booking.client
+  const otherCity = 'city' in other ? other.city : undefined
   const isPending = booking.status === 'PENDING'
   const isAccepted = booking.status === 'ACCEPTED'
   const isCompleted = booking.status === 'COMPLETED'
@@ -169,10 +170,10 @@ export default function BookingDetailPage() {
             <div className="flex-1">
               <p className="font-semibold text-gray-900">{other.name}</p>
               <p className="text-sm text-gray-500">{isClient ? 'Service Provider' : 'Client'}</p>
-              {other.city && (
+              {otherCity && (
                 <div className="flex items-center gap-1 mt-0.5">
                   <MapPin className="w-3 h-3 text-gray-400" />
-                  <span className="text-xs text-gray-400">{other.city}</span>
+                  <span className="text-xs text-gray-400">{otherCity}</span>
                 </div>
               )}
             </div>

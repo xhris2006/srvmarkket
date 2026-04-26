@@ -4,16 +4,7 @@
 
 'use client'
 
-// Type definitions for Agora RTC client
-// The actual SDK is loaded dynamically to avoid SSR issues
-type IAgoraRTCClient = {
-  join: (appId: string, channel: string, token: string, uid: number) => Promise<number>
-  leave: () => Promise<void>
-  publish: (tracks: unknown[]) => Promise<void>
-  unpublish: (tracks?: unknown[]) => Promise<void>
-  on: (event: string, handler: (...args: unknown[]) => void) => void
-  off: (event: string, handler: (...args: unknown[]) => void) => void
-}
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng'
 
 interface AgoraCallOptions {
   channelName: string
@@ -58,8 +49,8 @@ export async function joinAgoraChannel(options: AgoraCallOptions) {
  */
 export async function leaveAgoraChannel(
   client: IAgoraRTCClient,
-  localAudioTrack: { stop: () => void; close: () => void } | null,
-  localVideoTrack: { stop: () => void; close: () => void } | null
+  localAudioTrack: IMicrophoneAudioTrack | null,
+  localVideoTrack: ICameraVideoTrack | null
 ) {
   localAudioTrack?.stop()
   localAudioTrack?.close()

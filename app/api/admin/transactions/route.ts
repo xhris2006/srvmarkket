@@ -45,8 +45,8 @@ export const POST = withAuth(async (req) => {
   const transaction = await prisma.transaction.findUnique({ where: { id: transactionId } })
 
   if (!transaction) return apiError('Transaction not found', 404)
-  if (transaction.status !== 'COMPLETED') return apiError('Can only refund completed transactions')
   if (transaction.status === 'REFUNDED') return apiError('Already refunded')
+  if (transaction.status !== 'COMPLETED') return apiError('Can only refund completed transactions')
 
   if (transaction.stripePaymentIntentId) {
     await createStripeRefund(transaction.stripePaymentIntentId)

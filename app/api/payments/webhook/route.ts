@@ -2,6 +2,7 @@
 // Stripe webhook: handles payment completion, refunds, etc.
 
 import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { verifyStripeWebhook } from '@/services/payment'
 
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case 'payment_intent.succeeded': {
-        const intent = event.data.object as { id: string; metadata: { bookingId: string } }
+        const intent = event.data.object as Stripe.PaymentIntent
         const bookingId = intent.metadata?.bookingId
         if (!bookingId) break
 
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'payment_intent.payment_failed': {
-        const intent = event.data.object as { id: string }
+        const intent = event.data.object as Stripe.PaymentIntent
         await prisma.transaction.updateMany({
           where: { stripePaymentIntentId: intent.id },
           data: { status: 'FAILED' },
@@ -71,9 +72,10 @@ export async function POST(req: NextRequest) {
       }
 
       case 'charge.refunded': {
-        const charge = event.data.object as { payment_intent: string }
+        const charge = event.data.object as Stripe.Charge
+        if (!charge.payment_intent || typeof charge.payment_intent !== 'string') break
         await prisma.transaction.updateMany({
-          where: { stripePaymentIntentId: charge.payment_intent as string },
+          where: { stripePaymentIntentId: charge.payment_intent },
           data: { status: 'REFUNDED' },
         })
         break

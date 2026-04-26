@@ -7,7 +7,7 @@ import { Phone, PhoneOff, Video } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallStore } from '@/lib/store'
 import { useSocket } from '@/hooks/useSocket'
-import { Avatar } from './Avatar'
+import { Avatar } from '@/components/ui/Avatar'
 
 export function IncomingCallOverlay() {
   const { incomingCall, setIncomingCall, endCall } = useCallStore()

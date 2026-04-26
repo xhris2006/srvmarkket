@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Search, MapPin, Filter, Star, CheckCircle, Loader2, SlidersHorizontal, X } from 'lucide-react'
 import Image from 'next/image'
@@ -37,7 +39,7 @@ interface Provider {
   services: Array<{ title: string; price: number; priceType: string }>
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -198,6 +200,14 @@ export default function SearchPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-600 animate-spin" /></div>}>
+      <SearchPageContent />
+    </Suspense>
   )
 }
 

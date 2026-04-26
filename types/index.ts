@@ -18,6 +18,12 @@ export interface AuthUser {
   isVerified: boolean
 }
 
+export interface PublicUser {
+  id: string
+  name: string
+  avatar?: string | null
+}
+
 export interface JWTPayload {
   sub: string
   email: string
@@ -74,7 +80,7 @@ export interface Message {
   id: string
   conversationId: string
   senderId: string
-  sender: AuthUser
+  sender: PublicUser
   content?: string | null
   type: MessageType
   audioUrl?: string | null
@@ -84,7 +90,7 @@ export interface Message {
 
 export interface Conversation {
   id: string
-  participants: AuthUser[]
+  participants: PublicUser[]
   lastMessage?: string | null
   lastMessageAt?: string | null
   messages?: Message[]

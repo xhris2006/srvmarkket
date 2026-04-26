@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, CreditCard, CheckCircle, ExternalLink, Loader2, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 
-export default function StripeConnectPage() {
+function StripeConnectPageContent() {
   const { accessToken } = useAuthStore()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -129,5 +131,13 @@ export default function StripeConnectPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function StripeConnectPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-600 animate-spin" /></div>}>
+      <StripeConnectPageContent />
+    </Suspense>
   )
 }

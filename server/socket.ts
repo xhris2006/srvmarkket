@@ -4,7 +4,7 @@
 
 import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
-import jwt from 'jsonwebtoken'
+import { verifyAccessToken } from '@/lib/auth'
 
 interface AuthenticatedSocket extends Socket {
   userId?: string
@@ -26,7 +26,7 @@ const io = new Server(httpServer, {
 const onlineUsers = new Map<string, string>()
 
 // ─── AUTH MIDDLEWARE ──────────────────────────────────────────────────────────
-io.use((socket: AuthenticatedSocket, next) => {
+io.use(async (socket: AuthenticatedSocket, next) => {
   const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1]
   
   if (!token) {
@@ -34,10 +34,7 @@ io.use((socket: AuthenticatedSocket, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET || 'fallback') as {
-      sub: string
-      role: string
-    }
+    const decoded = await verifyAccessToken(token)
     socket.userId = decoded.sub
     socket.userRole = decoded.role
     next()

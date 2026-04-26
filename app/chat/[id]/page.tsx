@@ -8,11 +8,12 @@ import { io, Socket } from 'socket.io-client'
 
 interface Message {
   id: string
+  conversationId: string
   senderId: string
-  sender: { id: string; name: string; avatar?: string }
-  content?: string
-  type: 'TEXT' | 'VOICE' | 'IMAGE'
-  audioUrl?: string
+  sender: { id: string; name: string; avatar?: string | null }
+  content?: string | null
+  type: 'TEXT' | 'VOICE' | 'IMAGE' | 'SYSTEM'
+  audioUrl?: string | null
   isDeleted: boolean
   createdAt: string
   tempId?: string
@@ -20,7 +21,7 @@ interface Message {
 
 interface ConversationInfo {
   id: string
-  participants: Array<{ userId: string; user: { id: string; name: string; avatar?: string } }>
+  participants: Array<{ userId: string; user: { id: string; name: string; avatar?: string | null } }>
 }
 
 let socketInstance: Socket | null = null
@@ -115,7 +116,7 @@ export default function ChatPage() {
       setIncomingCall({
         callerId: data.callerId,
         callerName: otherParticipant?.user.name || 'Unknown',
-        callerAvatar: otherParticipant?.user.avatar,
+        callerAvatar: otherParticipant?.user.avatar ?? undefined,
         callType: data.callType,
         channelName: data.channelName,
       })
@@ -143,7 +144,7 @@ export default function ChatPage() {
 
     const tempId = `temp-${Date.now()}`
     const optimisticMsg: Message = {
-      id: tempId, tempId, senderId: user!.id,
+      id: tempId, tempId, conversationId, senderId: user!.id,
       sender: { id: user!.id, name: user!.name, avatar: user?.avatar || undefined },
       content, type: 'TEXT', isDeleted: false, createdAt: new Date().toISOString(),
     }
