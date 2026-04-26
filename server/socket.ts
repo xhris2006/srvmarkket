@@ -174,7 +174,7 @@ io.on('connection', (socket: AuthenticatedSocket) => {
 })
 
 // ─── START SERVER ─────────────────────────────────────────────────────────────
-const PORT = process.env.SOCKET_PORT || 3001
+const PORT = process.env.PORT || process.env.SOCKET_PORT || 3001
 httpServer.listen(PORT, () => {
   console.log(`[Socket] Real-time server running on port ${PORT}`)
 })
