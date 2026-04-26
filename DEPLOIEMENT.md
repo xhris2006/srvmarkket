@@ -122,6 +122,13 @@ Le serveur Socket.io **ne peut pas** tourner sur Vercel (serverless ne supporte 
 
 Dans Railway, après avoir connecté votre repo :
 
+**Settings → Builder** :
+```text
+Dockerfile Path = Dockerfile.socket
+```
+
+Si Railway détecte automatiquement le `Dockerfile` racine, il va builder toute l'app Next.js au lieu du service Socket.io.
+
 **Settings → Start Command** :
 ```bash
 npx tsx server/socket.ts
