@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({ success: true })
     response.cookies.delete('refreshToken')
+    response.cookies.delete('accessToken')
     return response
   } catch {
     return NextResponse.json({ success: true })

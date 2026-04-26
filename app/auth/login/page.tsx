@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Sparkles, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setUser, setAccessToken } = useAuthStore()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
@@ -35,7 +36,9 @@ export default function LoginPage() {
       setAccessToken(data.data.accessToken)
 
       const role = data.data.user.role
+      const redirectTo = searchParams.get('redirect')
       if (role === 'ADMIN') router.push('/admin/dashboard')
+      else if (redirectTo && redirectTo.startsWith('/')) router.push(redirectTo)
       else router.push('/search')
     } catch {
       setError('Something went wrong. Please try again.')
@@ -125,5 +128,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 text-purple-600 animate-spin" /></div>}>
+      <LoginPageContent />
+    </Suspense>
   )
 }
