@@ -32,7 +32,30 @@ export const POST = withAuth(async (req, { user }) => {
 }, ['PROVIDER'])
 
 // GET list my services (provider)
-export const GET = withAuth(async (_req, { user }) => {
+export const GET = withAuth(async (req, { user }) => {
+  const { searchParams } = new URL(req.url)
+  const providerId = searchParams.get('providerId')
+
+  if (providerId && providerId !== 'me') {
+    const profile = await prisma.providerProfile.findFirst({
+      where: {
+        OR: [
+          { id: providerId },
+          { userId: providerId },
+        ],
+      },
+      include: {
+        services: {
+          where: { isActive: true },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    })
+
+    if (!profile) return apiError('Provider profile not found', 404)
+    return apiSuccess(profile.services)
+  }
+
   const profile = await prisma.providerProfile.findUnique({
     where: { userId: user.id },
     include: { services: { orderBy: { createdAt: 'desc' } } },

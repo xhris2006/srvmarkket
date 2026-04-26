@@ -18,6 +18,7 @@ model User {
   name          String
   avatar        String?
   phone         String?
+  language      String?
   role          Role     @default(CLIENT)
   isVerified    Boolean  @default(false)
   isBanned      Boolean  @default(false)

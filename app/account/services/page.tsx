@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Trash2, Edit3, Loader2, DollarSign, Clock, Tag } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
@@ -8,24 +8,9 @@ import { useToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
+import { CATEGORY_OPTIONS, EMPTY_STATE_ICON, getCategoryLabel } from '@/lib/icon-maps'
 
-const CATEGORIES = [
-  { value: 'CLEANING', label: '🧹 Cleaning' },
-  { value: 'REPAIR', label: '🔧 Repair' },
-  { value: 'PLUMBING', label: '🪛 Plumbing' },
-  { value: 'ELECTRICAL', label: '⚡ Electrical' },
-  { value: 'PAINTING', label: '🎨 Painting' },
-  { value: 'MOVING', label: '📦 Moving' },
-  { value: 'GARDENING', label: '🌿 Gardening' },
-  { value: 'COOKING', label: '🍳 Cooking' },
-  { value: 'TUTORING', label: '📚 Tutoring' },
-  { value: 'BEAUTY', label: '💅 Beauty' },
-  { value: 'FITNESS', label: '💪 Fitness' },
-  { value: 'PET_CARE', label: '🐾 Pet Care' },
-  { value: 'IT_SUPPORT', label: '💻 IT Support' },
-  { value: 'PHOTOGRAPHY', label: '📸 Photography' },
-  { value: 'OTHER', label: '✨ Other' },
-]
+const CATEGORIES = CATEGORY_OPTIONS
 
 interface Service {
   id: string
@@ -70,14 +55,18 @@ export default function ManageServicesPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // Fetch provider's services
-  useEffect(() => {
+  const fetchServices = useCallback(async () => {
     if (!accessToken) return
-    fetch('/api/services', { headers: { Authorization: `Bearer ${accessToken}` } })
+    setIsLoading(true)
+    await fetch('/api/services?providerId=me', { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((r) => r.json())
       .then((d) => { if (d.success) setServices(d.data) })
       .finally(() => setIsLoading(false))
   }, [accessToken])
+
+  useEffect(() => {
+    void fetchServices()
+  }, [fetchServices])
 
   const openCreate = () => {
     setEditingId(null)
@@ -121,15 +110,13 @@ export default function ManageServicesPage() {
       })
       const data = await res.json()
 
-      if (!data.success) { toastError(data.error || 'Failed to save service'); return }
-
-      if (editingId) {
-        setServices((prev) => prev.map((s) => s.id === editingId ? data.data : s))
-        success('Service updated!')
-      } else {
-        setServices((prev) => [data.data, ...prev])
-        success('Service created!')
+      if (!data.success) {
+        toastError(data.error || 'Failed to save service')
+        return
       }
+
+      await fetchServices()
+      success(editingId ? 'Service updated!' : 'Service created!')
       setShowModal(false)
     } finally {
       setIsSaving(false)
@@ -165,13 +152,12 @@ export default function ManageServicesPage() {
     })
     const data = await res.json()
     if (data.success) {
-      setServices((prev) => prev.map((s) => s.id === svc.id ? { ...s, isActive: !s.isActive } : s))
+      await fetchServices()
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-gray-100">
@@ -191,7 +177,7 @@ export default function ManageServicesPage() {
           </div>
         ) : services.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-5xl mb-4">🛠️</div>
+            <EMPTY_STATE_ICON className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No services yet</h3>
             <p className="text-gray-500 text-sm mb-6">Add your first service to start receiving bookings</p>
             <Button leftIcon={<Plus className="w-4 h-4" />} onClick={openCreate}>
@@ -214,7 +200,6 @@ export default function ManageServicesPage() {
                   </div>
                 </div>
 
-                {/* Stats row */}
                 <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
                   <span className="flex items-center gap-1">
                     <DollarSign className="w-3.5 h-3.5 text-green-500" />
@@ -229,11 +214,10 @@ export default function ManageServicesPage() {
                   )}
                   <span className="flex items-center gap-1">
                     <Tag className="w-3.5 h-3.5 text-blue-500" />
-                    {CATEGORIES.find((c) => c.value === svc.category)?.label.split(' ')[1] || svc.category}
+                    {getCategoryLabel(svc.category)}
                   </span>
                 </div>
 
-                {/* Action buttons */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleToggleActive(svc)}
@@ -268,7 +252,6 @@ export default function ManageServicesPage() {
         )}
       </div>
 
-      {/* Create / Edit modal */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}

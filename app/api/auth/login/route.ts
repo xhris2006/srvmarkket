@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       data: {
-        user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, isVerified: user.isVerified },
+        user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, phone: user.phone, language: user.language, role: user.role, isVerified: user.isVerified },
         accessToken,
       },
     })

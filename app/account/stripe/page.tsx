@@ -22,7 +22,7 @@ function StripeConnectPageContent() {
 
   useEffect(() => {
     if (!accessToken) return
-    fetch('/api/payments/connect', { headers: { Authorization: `Bearer ${accessToken}` } })
+    fetch('/api/stripe/connect?status=1', { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((r) => r.json())
       .then((d) => { if (d.success) setIsConnected(d.data.connected) })
       .finally(() => setIsLoading(false))
@@ -34,8 +34,7 @@ function StripeConnectPageContent() {
     if (!accessToken) return
     setIsConnecting(true)
     try {
-      const res = await fetch('/api/payments/connect', {
-        method: 'POST',
+      const res = await fetch('/api/stripe/connect', {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       const data = await res.json()

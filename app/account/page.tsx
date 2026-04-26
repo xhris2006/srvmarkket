@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import {
   User, Settings, Bell, Shield, CreditCard,
-  ChevronRight, LogOut, Star, MapPin, Edit3, Loader2
+  ChevronRight, LogOut, Star, MapPin, Edit3, Loader2, CheckCircle
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { useAuth } from '@/hooks/useAuth'
@@ -11,12 +11,15 @@ import { Avatar } from '@/components/ui/Avatar'
 import { useToast } from '@/components/ui/Toast'
 
 export default function AccountPage() {
-  const { user, accessToken } = useAuthStore()
+  const { user, accessToken, setUser } = useAuthStore()
   const { signOut } = useAuth()
   const { success, error } = useToast()
   const [isEditingName, setIsEditingName] = useState(false)
   const [name, setName] = useState(user?.name || '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   if (!user) {
     return (
@@ -42,6 +45,7 @@ export default function AccountPage() {
       })
       const data = await res.json()
       if (data.success) {
+        setUser(data.data)
         success('Name updated successfully')
         setIsEditingName(false)
       } else {
@@ -49,6 +53,52 @@ export default function AccountPage() {
       }
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !accessToken || !user) return
+
+    const previewUrl = URL.createObjectURL(file)
+    setAvatarPreview(previewUrl)
+    setIsUploadingAvatar(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+      })
+      const uploadData = await uploadRes.json()
+
+      if (!uploadData.success) {
+        throw new Error(uploadData.error || 'Upload failed')
+      }
+
+      const saveRes = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({ avatar: uploadData.data.url }),
+      })
+      const saveData = await saveRes.json()
+
+      if (!saveData.success) {
+        throw new Error(saveData.error || 'Failed to save profile photo')
+      }
+
+      setUser(saveData.data)
+      setAvatarPreview(saveData.data.avatar || uploadData.data.url)
+      success('Profile photo updated successfully')
+    } catch (uploadError) {
+      setAvatarPreview(user.avatar || null)
+      error(uploadError instanceof Error ? uploadError.message : 'Failed to update profile photo')
+    } finally {
+      setIsUploadingAvatar(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -85,9 +135,20 @@ export default function AccountPage() {
       <div className="gradient-brand px-4 pt-10 pb-16">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <div className="relative">
-            <Avatar src={user.avatar} name={user.name} size="xl" />
-            <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100">
-              <Edit3 className="w-3.5 h-3.5 text-gray-600" />
+            <Avatar src={avatarPreview} name={user.name} size="xl" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md border border-gray-100 disabled:opacity-70"
+            >
+              {isUploadingAvatar ? <Loader2 className="w-3.5 h-3.5 text-gray-600 animate-spin" /> : <Edit3 className="w-3.5 h-3.5 text-gray-600" />}
             </button>
           </div>
 
@@ -122,8 +183,9 @@ export default function AccountPage() {
                 {user.role}
               </span>
               {user.isVerified && (
-                <span className="bg-green-400/20 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                  ✓ Verified
+                <span className="bg-green-400/20 text-white text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Verified
                 </span>
               )}
             </div>

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, Sparkles, Loader2 } from 'lucide-react'
+import { Briefcase, Eye, EyeOff, Search, Sparkles, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 
 function RegisterPageContent() {
@@ -18,6 +18,7 @@ function RegisterPageContent() {
     email: '',
     password: '',
     role: defaultRole as 'CLIENT' | 'PROVIDER',
+    language: 'English',
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -43,7 +44,7 @@ function RegisterPageContent() {
 
       setUser(data.data.user)
       setAccessToken(data.data.accessToken)
-      
+
       if (form.role === 'PROVIDER') {
         router.push('/profile/setup')
       } else {
@@ -59,7 +60,6 @@ function RegisterPageContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-3">
             <Sparkles className="w-6 h-6 text-white" />
@@ -68,7 +68,6 @@ function RegisterPageContent() {
           <p className="text-gray-500 text-sm mt-1">Join ServMarket today</p>
         </div>
 
-        {/* Role selector */}
         <div className="bg-gray-100 rounded-2xl p-1 flex mb-6">
           {(['CLIENT', 'PROVIDER'] as const).map((role) => (
             <button
@@ -80,18 +79,20 @@ function RegisterPageContent() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {role === 'CLIENT' ? '🔍 I need a service' : '🛠️ I provide services'}
+              <span className="inline-flex items-center gap-2">
+                {role === 'CLIENT' ? <Search className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+                {role === 'CLIENT' ? 'I need a service' : 'I provide services'}
+              </span>
             </button>
           ))}
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name</label>
             <input
-              autoComplete="name"
               required
+              autoComplete="name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="John Doe"
@@ -103,8 +104,8 @@ function RegisterPageContent() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
             <input
               required
-              autoComplete="email"
               type="email"
+              autoComplete="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="john@example.com"
@@ -113,13 +114,26 @@ function RegisterPageContent() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Language</label>
+            <select
+              value={form.language}
+              onChange={(e) => setForm({ ...form, language: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all bg-white"
+            >
+              {['English', 'French', 'Spanish', 'German', 'Portuguese', 'Arabic'].map((language) => (
+                <option key={language} value={language}>{language}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
             <div className="relative">
               <input
                 required
                 minLength={8}
-                autoComplete="new-password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="At least 8 characters"

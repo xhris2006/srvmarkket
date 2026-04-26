@@ -35,7 +35,7 @@ export const POST = withAuth(async (req, { user }) => {
   const parsed = schema.safeParse(body)
   if (!parsed.success) return apiError(parsed.error.errors[0].message)
 
-  const appId = process.env.AGORA_APP_ID
+  const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || process.env.AGORA_APP_ID
   const appCertificate = process.env.AGORA_APP_CERTIFICATE
 
   if (!appId || !appCertificate) {

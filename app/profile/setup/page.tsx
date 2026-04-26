@@ -5,24 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Sparkles, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { useToast } from '@/components/ui/Toast'
+import { CATEGORY_OPTIONS } from '@/lib/icon-maps'
 
-const CATEGORIES = [
-  { value: 'CLEANING', label: 'Cleaning', icon: '🧹' },
-  { value: 'REPAIR', label: 'Repair', icon: '🔧' },
-  { value: 'PLUMBING', label: 'Plumbing', icon: '🪛' },
-  { value: 'ELECTRICAL', label: 'Electrical', icon: '⚡' },
-  { value: 'PAINTING', label: 'Painting', icon: '🎨' },
-  { value: 'MOVING', label: 'Moving', icon: '📦' },
-  { value: 'GARDENING', label: 'Gardening', icon: '🌿' },
-  { value: 'COOKING', label: 'Cooking', icon: '🍳' },
-  { value: 'TUTORING', label: 'Tutoring', icon: '📚' },
-  { value: 'BEAUTY', label: 'Beauty', icon: '💅' },
-  { value: 'FITNESS', label: 'Fitness', icon: '💪' },
-  { value: 'PET_CARE', label: 'Pet Care', icon: '🐾' },
-  { value: 'IT_SUPPORT', label: 'IT Support', icon: '💻' },
-  { value: 'PHOTOGRAPHY', label: 'Photography', icon: '📸' },
-  { value: 'OTHER', label: 'Other', icon: '✨' },
-]
+const CATEGORIES = CATEGORY_OPTIONS
 
 interface ServiceForm {
   title: string
@@ -44,6 +29,7 @@ export default function ProfileSetupPage() {
   const [profile, setProfile] = useState({
     tagline: '',
     bio: '',
+    phone: '',
     city: '',
     country: '',
   })
@@ -69,14 +55,12 @@ export default function ProfileSetupPage() {
     if (!accessToken) return
     setIsSaving(true)
     try {
-      // Save profile info
-      const profileRes = await fetch('/api/users/me', {
+      await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify(profile),
       })
 
-      // Save services
       const validServices = services.filter((s) => s.title && s.category && s.price)
       for (const svc of validServices) {
         await fetch('/api/services', {
@@ -113,7 +97,6 @@ export default function ProfileSetupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-12 h-12 gradient-brand rounded-2xl flex items-center justify-center mx-auto mb-3">
             <Sparkles className="w-6 h-6 text-white" />
@@ -122,7 +105,6 @@ export default function ProfileSetupPage() {
           <p className="text-gray-500 text-sm mt-1">Tell clients about your services</p>
         </div>
 
-        {/* Step indicator */}
         <div className="flex items-center gap-2 mb-8 justify-center">
           {[1, 2].map((s) => (
             <div key={s} className="flex items-center gap-2">
@@ -134,7 +116,6 @@ export default function ProfileSetupPage() {
           ))}
         </div>
 
-        {/* Step 1: Profile info */}
         {step === 1 && (
           <div className="bg-white rounded-2xl p-6 card-shadow space-y-4">
             <h2 className="font-semibold text-gray-900">About you</h2>
@@ -165,6 +146,15 @@ export default function ProfileSetupPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+                <input
+                  value={profile.phone}
+                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  placeholder="+1 555 123 4567"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
                 <input
                   value={profile.city}
@@ -173,7 +163,7 @@ export default function ProfileSetupPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                 />
               </div>
-              <div>
+              <div className="col-span-2 sm:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
                 <input
                   value={profile.country}
@@ -193,7 +183,6 @@ export default function ProfileSetupPage() {
           </div>
         )}
 
-        {/* Step 2: Services */}
         {step === 2 && (
           <div className="space-y-4">
             {services.map((svc, i) => (
@@ -230,7 +219,7 @@ export default function ProfileSetupPage() {
                   >
                     <option value="">Select category</option>
                     {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                      <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
 

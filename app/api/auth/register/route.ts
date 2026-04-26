@@ -12,6 +12,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(100),
   role: z.enum(['CLIENT', 'PROVIDER']).default('CLIENT'),
+  language: z.string().min(2).max(20).default('English'),
 })
 
 export async function POST(req: NextRequest) {
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     const name = parsed.data.name.trim()
     const email = parsed.data.email.trim().toLowerCase()
-    const { password, role } = parsed.data
+    const { password, role, language } = parsed.data
 
     // Check if email already exists
     const existing = await prisma.user.findUnique({ where: { email } })
@@ -49,10 +50,11 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         role,
+        language,
         // Auto-create provider profile for providers
         providerProfile: role === 'PROVIDER' ? { create: {} } : undefined,
       },
-      select: { id: true, email: true, name: true, avatar: true, role: true, isVerified: true },
+      select: { id: true, email: true, name: true, avatar: true, phone: true, language: true, role: true, isVerified: true },
     })
 
     // Issue tokens

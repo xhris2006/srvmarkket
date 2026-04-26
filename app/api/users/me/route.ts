@@ -9,7 +9,7 @@ export const GET = withAuth(async (_req, { user }) => {
   const profile = await prisma.user.findUnique({
     where: { id: user.id },
     select: {
-      id: true, name: true, email: true, avatar: true, phone: true,
+      id: true, name: true, email: true, avatar: true, phone: true, language: true,
       role: true, isVerified: true, city: true, country: true,
       latitude: true, longitude: true, createdAt: true,
       providerProfile: {
@@ -28,6 +28,8 @@ export const GET = withAuth(async (_req, { user }) => {
 const updateSchema = z.object({
   name: z.string().min(2).max(50).optional(),
   phone: z.string().optional(),
+  language: z.string().max(20).optional(),
+  avatar: z.string().url().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
   latitude: z.number().optional(),
@@ -50,7 +52,7 @@ export const PATCH = withAuth(async (req, { user }) => {
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
     data: userFields,
-    select: { id: true, name: true, email: true, avatar: true, role: true, isVerified: true },
+    select: { id: true, name: true, email: true, avatar: true, phone: true, language: true, role: true, isVerified: true },
   })
 
   // Update provider profile if provider fields provided

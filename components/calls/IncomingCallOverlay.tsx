@@ -54,7 +54,7 @@ export function IncomingCallOverlay({ acceptCall, rejectCall }: IncomingCallOver
 
   const handleAccept = () => {
     acceptCall(incomingCall.channelName, incomingCall.callerId)
-    router.push(`/chat/call?channel=${incomingCall.channelName}&type=${incomingCall.callType}&incoming=true`)
+    router.push(`/chat/${incomingCall.callerId}/call?channel=${incomingCall.channelName}&type=${incomingCall.callType}&incoming=true&caller=${incomingCall.callerId}`)
     setIncomingCall(null)
   }
 

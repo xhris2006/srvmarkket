@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
+import { AppHeader } from '@/components/layout/AppHeader'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { ToastProvider } from '@/components/ui/Toast'
 import { SocketInitializer } from '@/components/socket/SocketInitializer'
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} font-sans antialiased`}>
         <ToastProvider>
           <AuthInitializer />
+          <AppHeader />
           <SocketInitializer />
           <main className="min-h-screen">{children}</main>
           <BottomNav />

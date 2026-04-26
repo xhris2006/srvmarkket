@@ -14,6 +14,8 @@ export interface AuthUser {
   email: string
   name: string
   avatar?: string | null
+  phone?: string | null
+  language?: string | null
   role: Role
   isVerified: boolean
 }
@@ -22,6 +24,7 @@ export interface PublicUser {
   id: string
   name: string
   avatar?: string | null
+  phone?: string | null
 }
 
 export interface JWTPayload {
@@ -86,6 +89,7 @@ export interface Message {
   audioUrl?: string | null
   isDeleted: boolean
   createdAt: string
+  tempId?: string
 }
 
 export interface Conversation {
