@@ -5,7 +5,8 @@ WORKDIR /app
 
 # Install only production deps
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm install --ignore-scripts
+CMD ["npx", "tsx", "server/socket.ts"]
 
 COPY server/ ./server/
 COPY tsconfig.json ./
