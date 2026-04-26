@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { ToastProvider } from '@/components/ui/Toast'
-import { IncomingCallOverlay } from '@/components/calls/IncomingCallOverlay'
+import { SocketInitializer } from '@/components/socket/SocketInitializer'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ToastProvider>
-          <IncomingCallOverlay />
+          <SocketInitializer />
           <main className="min-h-screen">{children}</main>
           <BottomNav />
         </ToastProvider>

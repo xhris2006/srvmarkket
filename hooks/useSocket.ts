@@ -19,6 +19,7 @@ export function useSocket() {
   const { addNotification } = useNotificationStore()
   const [isConnected, setIsConnected] = useState(false)
   const socketRef = useRef<Socket | null>(null)
+  const hasTriedRef = useRef(false)
 
   const connect = useCallback(() => {
     const isPublicRoute =
@@ -28,7 +29,13 @@ export function useSocket() {
     if (isPublicRoute) return
     if (!accessToken || !user) return
     const socketUrl = getSocketUrl()
-    if (!socketUrl) return
+    if (!socketUrl) {
+      if (!hasTriedRef.current) {
+        console.warn('[Socket] URL non definie - chat desactive')
+        hasTriedRef.current = true
+      }
+      return
+    }
     if (globalSocket?.connected) {
       socketRef.current = globalSocket
       setIsConnected(true)
@@ -38,7 +45,7 @@ export function useSocket() {
     const socket = io(socketUrl, {
       auth: { token: accessToken },
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 3,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       transports: ['websocket', 'polling'],

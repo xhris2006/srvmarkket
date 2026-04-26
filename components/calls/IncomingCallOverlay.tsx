@@ -6,12 +6,15 @@ import { useEffect, useRef } from 'react'
 import { Phone, PhoneOff, Video } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallStore } from '@/lib/store'
-import { useSocket } from '@/hooks/useSocket'
 import { Avatar } from '@/components/ui/Avatar'
 
-export function IncomingCallOverlay() {
+interface IncomingCallOverlayProps {
+  acceptCall: (channelName: string, callerId: string) => void
+  rejectCall: (channelName: string, callerId: string) => void
+}
+
+export function IncomingCallOverlay({ acceptCall, rejectCall }: IncomingCallOverlayProps) {
   const { incomingCall, setIncomingCall, endCall } = useCallStore()
-  const { acceptCall, rejectCall } = useSocket()
   const router = useRouter()
   const ringtonRef = useRef<HTMLAudioElement | null>(null)
 
