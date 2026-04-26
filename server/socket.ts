@@ -13,9 +13,29 @@ interface AuthenticatedSocket extends Socket {
 
 const httpServer = createServer()
 
+function getAllowedOrigins() {
+  const configuredOrigins = process.env.ALLOWED_ORIGINS?.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+
+  if (configuredOrigins && configuredOrigins.length > 0) {
+    return configuredOrigins
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
+  if (appUrl) {
+    return [appUrl]
+  }
+
+  return true
+}
+
+const allowedOrigins = getAllowedOrigins()
+console.log('[Socket] Allowed origins:', allowedOrigins === true ? 'all' : allowedOrigins.join(', '))
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },

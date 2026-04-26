@@ -20,6 +20,7 @@ export function useSocket() {
   const [isConnected, setIsConnected] = useState(false)
   const socketRef = useRef<Socket | null>(null)
   const hasTriedRef = useRef(false)
+  const errorLoggedRef = useRef(false)
 
   const connect = useCallback(() => {
     const isPublicRoute =
@@ -54,6 +55,7 @@ export function useSocket() {
     // ─── CONNECTION EVENTS ────────────────────────────────────────────────────
     socket.on('connect', () => {
       setIsConnected(true)
+      errorLoggedRef.current = false
       console.log('[Socket] Connected:', socket.id)
     })
 
@@ -63,7 +65,10 @@ export function useSocket() {
     })
 
     socket.on('connect_error', (err) => {
-      console.error('[Socket] Connection error:', err.message)
+      if (!errorLoggedRef.current) {
+        console.error('[Socket] Connection error:', err.message)
+        errorLoggedRef.current = true
+      }
       setIsConnected(false)
     })
 
