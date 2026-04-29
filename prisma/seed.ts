@@ -1,6 +1,6 @@
 // ─── DATABASE SEED SCRIPT ─────────────────────────────────────────────────────
 // Run with: npx tsx prisma/seed.ts
-// Creates demo admin, providers, services, bookings, reviews
+// Creates starter admin, providers, services, bookings, reviews
 
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
@@ -207,10 +207,7 @@ async function main() {
     console.log(`✅ Provider created: ${data.name}`)
   }
 
-  console.log('\n🎉 Seed complete! Demo credentials:')
-  console.log('   Admin: admin@servmarket.com / Admin1234!')
-  console.log('   Client: client@example.com / Client123!')
-  console.log('   Provider: cleaner@example.com / Provider123!')
+  console.log('\nSeed complete.')
 }
 
 main()

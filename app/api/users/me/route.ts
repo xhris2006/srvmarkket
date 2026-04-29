@@ -29,7 +29,9 @@ const updateSchema = z.object({
   name: z.string().min(2).max(50).optional(),
   phone: z.string().optional(),
   language: z.string().max(20).optional(),
-  avatar: z.string().url().optional(),
+  avatar: z.string().refine((value) => value.startsWith('/') || z.string().url().safeParse(value).success, {
+    message: 'Invalid avatar URL',
+  }).optional(),
   city: z.string().optional(),
   country: z.string().optional(),
   latitude: z.number().optional(),

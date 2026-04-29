@@ -115,11 +115,6 @@ function LoginPageContent() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div className="mt-4 p-3 bg-purple-50 rounded-xl text-xs text-purple-700 text-center">
-          <strong>Demo:</strong> admin@servmarket.com / Admin1234!
-        </div>
-
         <p className="text-center text-sm text-gray-500 mt-6">
           Don&apos;t have an account?{' '}
           <a href="/auth/register" className="text-purple-600 font-medium hover:text-purple-700">

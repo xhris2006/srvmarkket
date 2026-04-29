@@ -56,6 +56,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: 'cv11', 'ss01';
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -106,4 +107,10 @@
 /* ─── MOBILE BOTTOM NAV SAFE AREA ────────────────────────────────────────── */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-bottom-nav {
+  padding-bottom: max(env(safe-area-inset-bottom), 10px);
+  pointer-events: auto;
+  touch-action: manipulation;
 }

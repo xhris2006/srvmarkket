@@ -2,7 +2,7 @@
 // Protects routes that require authentication by redirecting unauthenticated users
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAccessToken, extractBearerToken } from '@/lib/auth'
+import { verifyAccessToken, verifyRefreshToken, extractBearerToken } from '@/lib/auth'
 
 // Routes that require the user to be logged in
 const PROTECTED_PATHS = [
@@ -35,16 +35,27 @@ export async function middleware(req: NextRequest) {
 
   // Try to get token from cookie (for SSR) or Authorization header
   const cookieToken = req.cookies.get('accessToken')?.value
+  const refreshToken = req.cookies.get('refreshToken')?.value
   const headerToken = extractBearerToken(req.headers.get('Authorization'))
   const token = cookieToken || headerToken
 
   let user: { role: string } | null = null
+  let hasRecoverableSession = false
 
   if (token) {
     try {
       user = await verifyAccessToken(token)
     } catch {
       // Invalid token — treat as unauthenticated
+    }
+  }
+
+  if (!user && refreshToken) {
+    try {
+      await verifyRefreshToken(refreshToken)
+      hasRecoverableSession = true
+    } catch {
+      // Invalid refresh token - treat as unauthenticated
     }
   }
 
@@ -57,7 +68,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Protected path: redirect to login if not authenticated
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !user && !hasRecoverableSession) {
     const loginUrl = new URL('/auth/login', req.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)

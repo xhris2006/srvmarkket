@@ -31,7 +31,7 @@ export function BottomNav() {
   ) return null
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t safe-bottom md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t mobile-bottom-nav md:hidden">
       <div className="flex items-stretch">
         {NAV_ITEMS.map(({ href, icon: Icon, label, badge }) => {
           const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -40,7 +40,7 @@ export function BottomNav() {
               key={href}
               href={href}
               className={clsx(
-                'flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors',
+                'flex-1 min-h-[56px] flex flex-col items-center justify-center py-2.5 gap-0.5 relative transition-colors touch-manipulation',
                 isActive ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'
               )}
             >

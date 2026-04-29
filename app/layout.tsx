@@ -10,9 +10,21 @@ import { SocketInitializer } from '@/components/socket/SocketInitializer'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://servmarket.com'),
   title: 'ServMarket — Global Service Marketplace',
   description: 'Find trusted service providers near you. Book, chat, and pay securely.',
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'ServMarket',
+    description: 'Find trusted service providers near you. Book, chat, and pay securely.',
+    siteName: 'ServMarket',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ServMarket',
+    description: 'Find trusted service providers near you. Book, chat, and pay securely.',
+  },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ServMarket' },
   other: {
     'mobile-web-app-capable': 'yes',

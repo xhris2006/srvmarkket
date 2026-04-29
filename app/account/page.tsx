@@ -79,7 +79,7 @@ export default function AccountPage() {
         throw new Error(uploadData.error || 'Upload failed')
       }
 
-      const saveRes = await fetch('/api/profile', {
+      const saveRes = await fetch('/api/users/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ avatar: uploadData.data.url }),
@@ -123,7 +123,7 @@ export default function AccountPage() {
     {
       title: 'Support',
       items: [
-        { icon: Settings, label: 'Help Center',  href: '/help' },
+        { icon: Settings, label: 'Customer Support',  href: '/support' },
         { icon: Shield,   label: 'Terms & Privacy', href: '/terms' },
       ],
     },

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { signAccessToken, signRefreshToken } from '@/lib/auth'
+import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from '@/lib/auth-cookies'
 import { z } from 'zod'
 
 const loginSchema = z.object({
@@ -54,14 +55,14 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: REFRESH_TOKEN_MAX_AGE,
       path: '/',
     })
     response.cookies.set('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 15 * 60,
+      maxAge: ACCESS_TOKEN_MAX_AGE,
       path: '/',
     })
 

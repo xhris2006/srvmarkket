@@ -27,6 +27,24 @@ interface ConversationInfo {
 
 let socketInstance: Socket | null = null
 
+const AUDIO_MIME_TYPES = [
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/mp4',
+  'audio/ogg;codecs=opus',
+]
+
+function getSupportedAudioMimeType() {
+  if (typeof MediaRecorder === 'undefined') return ''
+  return AUDIO_MIME_TYPES.find((mimeType) => MediaRecorder.isTypeSupported(mimeType)) || ''
+}
+
+function getAudioFileExtension(mimeType: string) {
+  if (mimeType.includes('mp4')) return 'm4a'
+  if (mimeType.includes('ogg')) return 'ogg'
+  return 'webm'
+}
+
 export default function ChatPage() {
   const params = useParams()
   const router = useRouter()
@@ -196,11 +214,11 @@ export default function ChatPage() {
     }, 2000)
   }
 
-  const uploadAndSendVoice = useCallback(async (blob: Blob) => {
+  const uploadAndSendVoice = useCallback(async (blob: Blob, mimeType: string) => {
     if (!accessToken || !user) return
 
     const formData = new FormData()
-    formData.append('audio', blob, 'voice-message.webm')
+    formData.append('audio', blob, `voice-message.${getAudioFileExtension(mimeType)}`)
     formData.append('conversationId', conversationId)
 
     try {
@@ -210,7 +228,7 @@ export default function ChatPage() {
         body: formData,
       })
       const uploadData = await uploadRes.json()
-      if (!uploadData.success) return
+      if (!uploadData.success) throw new Error(uploadData.error || 'Voice upload failed')
 
       const tempId = `voice-${Date.now()}`
       addMessage(conversationId, {
@@ -254,7 +272,8 @@ export default function ChatPage() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      const mimeType = getSupportedAudioMimeType()
+      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream)
 
       currentStreamRef.current = stream
       mediaRecorderRef.current = mediaRecorder
@@ -276,8 +295,9 @@ export default function ChatPage() {
           return
         }
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-        await uploadAndSendVoice(audioBlob)
+        const audioType = mediaRecorder.mimeType || mimeType || 'audio/webm'
+        const audioBlob = new Blob(audioChunksRef.current, { type: audioType })
+        await uploadAndSendVoice(audioBlob, audioType)
       }
 
       mediaRecorder.start()
